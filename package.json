@@ -1,0 +1,44 @@
+{
+  "name": "features-service",
+  "version": "1.0.0",
+  "description": "Feature flagging service for Storyous systems",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server",
+    "develop": "cross-env NODE_ENV=development node server",
+    "lint": "eslint --format node_modules/eslint-friendly-formatter --ext .js server/**",
+    "test": "cross-env NODE_ENV=testing ./node_modules/mocha/bin/_mocha --recursive ./test"
+  },
+  "author": "Storyous.com s.r.o.",
+  "dependencies": {
+    "cronious": "^1.5.0",
+    "koa-body": "^1.6.0",
+    "koa-compress": "^1.0.9",
+    "koa-logger": "^1.3.0",
+    "koa-route": "^3.2.0",
+    "koa-router": "^7.1.1",
+    "koa2": "^2.0.0-alpha.7",
+    "mongodb": "^2.2.9",
+    "node-fetch": "^1.7.1",
+    "q": "^1.5.0",
+    "winston": "^2.2.0",
+    "winston-mongodb": "^1.6.1"
+  },
+  "devDependencies": {
+    "cross-env": "^3.1.3",
+    "eslint": "^3.4.0",
+    "eslint-config-airbnb": "^10.0.1",
+    "eslint-friendly-formatter": "^2.0.6",
+    "eslint-plugin-import": "^1.14.0",
+    "eslint-plugin-jsx-a11y": "^2.2.1",
+    "eslint-plugin-react": "^6.2.0",
+    "mocha": "^3.1.2",
+    "supertest-as-promised": "^4.0.0",
+    "supertest-koa-agent": "^0.3.0"
+  },
+  "engines": {
+    "node": "^8.0.0",
+    "npm": "4.6.1",
+    "mongodb": "^3.2.1"
+  }
+}

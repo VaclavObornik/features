@@ -2,6 +2,6 @@
 
 const router = require('koa-router')();
 
-router.use('/api', require('./api').routes());
+router.use('/', require('./api/features/features').routes());
 
 module.exports = router;

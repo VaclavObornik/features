@@ -27,7 +27,7 @@ describe('Features API', () => {
 
         it('should return definitions when requested for `POS` system', () => {
             return api.request()
-                .get('/api/features')
+                .get('/')
                 .query({ system: 'POS', version: '5.901' })
                 .expect(200)
                 .then((res) => {
@@ -40,7 +40,7 @@ describe('Features API', () => {
 
         it('should return definitions when requested for `merchant`', () => {
             return api.request()
-                .get('/api/features')
+                .get('/')
                 .query({ merchantId: '58dab243332f920e00b6cd17' })
                 .expect(200)
                 .then((res) => {
@@ -53,7 +53,7 @@ describe('Features API', () => {
 
         it('should return definitions when only `system` property is passed into request', () => {
             return api.request()
-                .get('/features')
+                .get('/')
                 .query({ system: 'POS' })
                 .then(function (res) {
 
@@ -68,7 +68,7 @@ describe('Features API', () => {
 
         it('should return all definitions as false when no query specified', () => {
             return api.request()
-                .get('/features')
+                .get('/')
                 .then(function (res) {
 
                     assert(!res.body.error, 'Response should have not contain any error');
@@ -83,14 +83,14 @@ describe('Features API', () => {
 
         it('should return 400 when non-existing system is passed into request', () => {
             return api.request()
-                .get('/api/features')
+                .get('/')
                 .query({ system: 'BLABLABLABADTEST', version: '5.901' })
                 .expect(400);
         });
 
         it('should return 400 when `version` property is specified, but not `system` name', () => {
             return api.request()
-                .get('/api/features')
+                .get('/')
                 .query({ version: '5.901' })
                 .expect(400);
         });

@@ -36,7 +36,11 @@ const featureStorage = {
      * @returns {Promise}
      */
     getFeatureDefinitions () {
-        return this._collection.findOne({ _id: this.DOCUMENT_ID });
+        return this._collection.findOne({ _id: this.DOCUMENT_ID })
+            .then((document) => {
+                delete document._id;
+                return document;
+            });
     }
 };
 

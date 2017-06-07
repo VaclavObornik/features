@@ -3,6 +3,16 @@
 const router = require('koa-router')();
 const FeatureDefinitionRequest = require('../../../models/features/featureDefinitionRequest');
 const features = require('../../../models/features');
+const AppError = require('../../../models/appError');
+
+router.get('*', async (ctx, next) => {
+    if (ctx.path === '/') {
+        await next();
+    } else {
+        // eslint-disable-next-line
+        throw new AppError.notFound();
+    }
+});
 
 router.get('*', async (ctx) => {
 

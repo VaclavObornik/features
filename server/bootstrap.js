@@ -6,7 +6,7 @@ const log = require('./models/log').module('bootstrap');
 const features = require('./models/features');
 
 
-module.exports = async function () {
+const promise = (async function () {
 
     try {
 
@@ -21,4 +21,6 @@ module.exports = async function () {
 
         setTimeout(() => process.exit(1), 10); // terminate app when models could not be initialized properly
     }
-};
+}());
+
+module.exports = promise;

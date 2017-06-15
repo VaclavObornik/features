@@ -32,11 +32,10 @@ app.use(errorHandler.getErrorHandler());
 app.use(controllers.routes());
 
 /** initialize modules **/
-require('./bootstrap')()
-    .then(() => {
-        app.listen(config.port, () => {
-            process.stdout.write(`Feature flagging app runs on port ${config.port}.\n\n`);
-        });
+require('./bootstrap').then(() => {
+    app.listen(config.port, () => {
+        process.stdout.write(`Feature flagging app runs on port ${config.port}.\n\n`);
     });
+});
 
 module.exports = app;

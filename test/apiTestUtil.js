@@ -4,14 +4,13 @@ const Q = require('q');
 const request = require('supertest-as-promised')(Q.Promise);
 const http = require('http');
 const app = require('../server');
+const bootstrap = require('../server/bootstrap');
 
 const apiTestUtil = {
 
     _initialized: false,
 
     _app: null,
-
-    _mocha: null,
 
     before (mocha) {
         this._initialize(mocha);
@@ -40,8 +39,9 @@ const apiTestUtil = {
         if (this._initialized) {
             return;
         }
-        this._mocha = mocha;
         this._initialized = true;
+
+        mocha.before(() => bootstrap);
     }
 };
 

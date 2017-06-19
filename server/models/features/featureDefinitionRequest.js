@@ -11,7 +11,7 @@ class FeatureDefinitionRequest {
         /**
          * Array of supported systems
          */
-        this.SUPPORTED_SYSTEMS = ['pos', 'pay'];
+        this.SUPPORTED_SYSTEMS = ['pos', 'pay', 'is', 'www', 'pig'];
 
         /**
          * @type {string}

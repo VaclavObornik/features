@@ -14,6 +14,11 @@ class FeatureDefinitionRequest {
         this.SUPPORTED_SYSTEMS = ['pos', 'pay', 'is', 'www', 'pig'];
 
         /**
+         * Array of supported systems
+         */
+        this.SUPPORTED_ENVIRONMENTS = ['production', 'pre', 'test', 'testing'];
+
+        /**
          * @type {string}
          */
         this.merchantId = null;
@@ -25,12 +30,20 @@ class FeatureDefinitionRequest {
          * }}
          */
         this.system = null;
+
+        /**
+         * @type {null}
+         */
+        this.environment = null;
     }
 
     validate () {
 
         this.merchantId = requestValidator.objectId(this.merchantId, 'merchantId');
         this.system = requestValidator.object(this.system);
+        this.environment = requestValidator.stringEnum(
+            this.environment, this.SUPPORTED_ENVIRONMENTS, false, 'environment', 'production'
+        );
 
         if (this.system) {
 

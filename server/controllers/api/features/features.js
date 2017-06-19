@@ -27,6 +27,8 @@ router.get('*', async (ctx) => {
 
     request.merchantId = ctx.query.merchantId;
 
+    request.environment = ctx.query.environment;
+
     request.validate();
 
     ctx.body = await features.getFeatureDefinitionsForSystemAndVersion(request);

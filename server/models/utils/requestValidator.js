@@ -160,6 +160,65 @@ const requestValidator = {
 
             throw AppError.badRequest(`Field \`${property}\` ${(ofObject || '')} should be filled`);
         }
+    },
+
+
+    /**
+     *
+     * @param {*} value
+     * @param {Array} array
+     * @param {string} fieldName
+     * @param {*|null} [defaultValue]
+     * @returns {*|null}
+     */
+    _enum (value, array, fieldName, defaultValue) {
+        let found = null;
+
+        if (value === null || typeof value === 'undefined') {
+
+            if (typeof defaultValue === 'undefined') {
+                defaultValue = null;
+            }
+
+        } else {
+            found = array.indexOf(value);
+        }
+
+        if (found === null) {
+            return defaultValue;
+
+        } else if (found >= 0) {
+            return array[found];
+        }
+
+        throw AppError.badRequest(`Field '${fieldName}' is not matching any required value`);
+    },
+
+    /**
+     *
+     * @param {*} value
+     * @param {Array} array
+     * @param {boolean} strict
+     * @param {string} fieldName
+     * @param {*|null} [defaultValue]
+     * @returns {*|null}
+     */
+    stringEnum (value, array, strict, fieldName, defaultValue) {
+
+        if (!strict) {
+            array = array.map((elem) => {
+                if (elem !== null) {
+                    elem = elem.toLowerCase();
+                }
+                return elem;
+            });
+
+            if (typeof value === 'string') {
+                value = value.toLowerCase();
+            }
+        }
+
+        return this._enum(value, array, fieldName, defaultValue);
     }
 };
 

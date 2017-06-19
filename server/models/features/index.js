@@ -6,7 +6,6 @@ const log = require('../log').module('features');
 const FeatureFetchTask = require('./featureFetchTask');
 const featureStorage = require('./featureStorage');
 const config = require('../../config');
-const requestValidator = require('../../models/utils/requestValidator');
 
 
 const features = {
@@ -85,25 +84,25 @@ const features = {
          * Test system version comparing function
          * @returns {boolean}
          */
-        const testSystemVersion = this._factoryTestSystemVersionFunction();
+        const testSystemVersion = request.system
+            ? this._factoryTestSystemVersionFunction(request.system)
+            : null;
 
         /**
          * Reducing function itself
          */
         return function (_value, _element) {
 
-            const shouldTestSystemVersion = _value === false
-                && request.system && new RegExp(`^(${request.system.system}).*$`, 'gm').test(_element);
-
-            if (shouldTestSystemVersion) {
-                _value = testSystemVersion(_value, _element, request.system);
+            if (testSystemVersion) {
+                _value = _value || testSystemVersion(_element);
             }
 
-            const shouldTestMerchantId = _value === false && request.merchantId
-                && new RegExp(requestValidator.OBJECT_ID_REGEX).test(_element);
+            if (request.merchantId) {
+                _value = _value || _element === request.merchantId;
+            }
 
-            if (shouldTestMerchantId) {
-                _value = _element === request.merchantId;
+            if (request.environment) {
+                _value = _value || _element === request.environment;
             }
 
             return _value;
@@ -114,29 +113,49 @@ const features = {
      * @returns {function}
      * @private
      */
-    _factoryTestSystemVersionFunction () {
-        return function (_value, _element, system) {
+    _factoryTestSystemVersionFunction (system) {
+
+        const systemMatcher = new RegExp(`^${system.system}`, 'gm');
+
+        return function (_element) {
+
+            if (!systemMatcher.test(_element)) {
+                return false;
+            }
 
             const stringToParse = _element.split(system.system)[1];
 
-            if (stringToParse.length === 0) { return true; } // if no-version specified, return true
+            if (stringToParse.length === 0) {
+                // if no-version specified, return true
+                return true;
+            }
 
             const indexOfVersion = stringToParse.search(new RegExp('[0-9]', 'gm'));
 
-            if (indexOfVersion === -1) { return false; }
+            if (indexOfVersion === -1) {
+                return false;
+            }
 
             const markToMatch = stringToParse.substring(0, indexOfVersion);
             const versionToMatch = parseFloat(stringToParse.substring(indexOfVersion, stringToParse.length));
 
-            if (versionToMatch === Number.NaN) { return false; }
+            if (versionToMatch === Number.NaN) {
+                return false;
+            }
 
             switch (markToMatch) {
-                case '>=': return system.version >= versionToMatch;
-                case '=': return system.version === versionToMatch;
-                case '<=': return system.version <= versionToMatch;
-                case '>': return system.version > versionToMatch;
-                case '<': return system.version < versionToMatch;
-                default: return false;
+                case '>=':
+                    return system.version >= versionToMatch;
+                case '=':
+                    return system.version === versionToMatch;
+                case '<=':
+                    return system.version <= versionToMatch;
+                case '>':
+                    return system.version > versionToMatch;
+                case '<':
+                    return system.version < versionToMatch;
+                default:
+                    return false;
             }
         };
     }

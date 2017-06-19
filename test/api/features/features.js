@@ -8,7 +8,7 @@ const before = require('mocha').before;
 const featureStorage = require('../../../server/models/features/featureStorage');
 
 const customDocument = {
-    feature1: ['test', 'pre', 'production'],
+    feature1: ['test', 'pre'],
     feature2: ['pos>=4.122'],
     merchantSpecificBugFix: ['58dab243332f920e00b6cd17']
 };
@@ -28,7 +28,7 @@ describe('Features API', () => {
         it('should return definitions when requested for `POS` system', () => {
             return api.request()
                 .get('/')
-                .query({ system: 'POS', version: '5.901' })
+                .query({ system: 'POS', version: '5.901', environment: 'production' })
                 .expect(200)
                 .then((res) => {
                     assert(!res.body.error, 'Response should have not contain any error');
@@ -85,6 +85,13 @@ describe('Features API', () => {
             return api.request()
                 .get('/')
                 .query({ system: 'BLABLABLABADTEST', version: '5.901' })
+                .expect(400);
+        });
+
+        it('should return 400 when non-existing environment is passed into request', () => {
+            return api.request()
+                .get('/')
+                .query({ environment: 'aaa' })
                 .expect(400);
         });
 

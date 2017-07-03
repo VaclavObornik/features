@@ -7,10 +7,12 @@ const it = require('mocha').it;
 const before = require('mocha').before;
 const featureStorage = require('../../../server/models/features/featureStorage');
 
+const merchantId1 = '60dab243332f920e00b6cd16';
+const merchantId2 = '58dab243332f920e00b6cd17';
 const customDocument = {
     feature1: ['test', 'pre'],
-    feature2: ['pos>=4.122'],
-    merchantSpecificBugFix: ['58dab243332f920e00b6cd17']
+    feature2: ['pos>=4.122', merchantId1],
+    merchantSpecificBugFix: [merchantId2]
 };
 
 
@@ -48,6 +50,33 @@ describe('Features API', () => {
                     assert(res.body.feature1 === false, 'Feature should be false');
                     assert(res.body.feature2 === false, 'Feature should be false');
                     assert(res.body.merchantSpecificBugFix === true, 'Feature should be true');
+                });
+        });
+
+        it('should return definitions by merchant with `byMerchant` flag', () => {
+            return api.request()
+                .get('/')
+                .query({ byMerchant: true, environment: 'pre' })
+                .expect(200)
+                .then((res) => {
+                    assert(!res.body.error, 'Response should have not contain any error');
+                    assert.deepEqual(res.body, {
+                        null: {
+                            feature1: true,
+                            feature2: false,
+                            merchantSpecificBugFix: false
+                        },
+                        [merchantId1]: {
+                            feature1: true,
+                            feature2: true,
+                            merchantSpecificBugFix: false
+                        },
+                        [merchantId2]: {
+                            feature1: true,
+                            feature2: false,
+                            merchantSpecificBugFix: true
+                        }
+                    }, 'The definitions does not match.');
                 });
         });
 

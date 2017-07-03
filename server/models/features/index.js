@@ -6,6 +6,8 @@ const log = require('../log').module('features');
 const FeatureFetchTask = require('./featureFetchTask');
 const featureStorage = require('./featureStorage');
 const config = require('../../config');
+const mongodb = require('mongodb');
+const FeatureDefinitionRequest = require('./featureDefinitionRequest');
 
 
 const features = {
@@ -48,14 +50,57 @@ const features = {
         await this._taskRunner.registerTask(task, 1);
     },
 
+    _getFeatureDefinitionsByMerchants (definitions, request) {
+
+        const merchantIds = Object.keys(definitions).reduce((_merchantIds, definiton) => {
+            _merchantIds.push(...definitions[definiton].filter((value) =>
+                mongodb.ObjectId.isValid(value) && !_merchantIds.includes(value)
+            ));
+            return _merchantIds;
+        }, []);
+
+        const merchantRequests = [
+
+            Object.assign(FeatureDefinitionRequest.clone(request), { byMerchant: false, merchantId: null }),
+
+            ...merchantIds.map(merchantId => Object.assign(
+                FeatureDefinitionRequest.clone(request),
+                { byMerchant: false, merchantId }
+            ))
+        ];
+
+        return merchantRequests.reduce((result, merchantRequest) => {
+            result[merchantRequest.merchantId] = this._getFeatureDefinitionsForRequest(
+                merchantRequest,
+                definitions
+            );
+            return result;
+        }, {});
+    },
+
     /**
      * @param {FeatureDefinitionRequest} request
      * @returns {boolean}
      */
-    async getFeatureDefinitionsForSystemAndVersion (request) {
+    async getFeatureDefinitionsForRequest (request) {
+
+        const definitions = await featureStorage.getFeatureDefinitions();
+
+        if (request.byMerchant) {
+            return this._getFeatureDefinitionsByMerchants(definitions, request);
+        }
+
+        return this._getFeatureDefinitionsForRequest(request, definitions);
+    },
+
+    /**
+     * @param {FeatureDefinitionRequest} request
+     * @param {Object} definitions
+     * @returns {boolean}
+     */
+    _getFeatureDefinitionsForRequest (request, definitions) {
 
         const translatedDefinitions = {};
-        const definitions = await featureStorage.getFeatureDefinitions();
         const reducingFunction = this._factoryReducingFunction(request);
 
         for (const prop in definitions) {

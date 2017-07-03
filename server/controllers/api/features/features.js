@@ -29,9 +29,11 @@ router.get('*', async (ctx) => {
 
     request.environment = ctx.query.environment;
 
+    request.byMerchant = ctx.query.byMerchant;
+
     request.validate();
 
-    ctx.body = await features.getFeatureDefinitionsForSystemAndVersion(request);
+    ctx.body = await features.getFeatureDefinitionsForRequest(request);
 });
 
 module.exports = router;

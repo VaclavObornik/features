@@ -29,6 +29,35 @@ const requestValidator = {
         return value;
     },
 
+
+    /**
+     *
+     * @param {*} value
+     * @param {*} [defaultValue]
+     * @returns {boolean}
+     */
+    boolean (value, defaultValue) {
+
+        if (typeof value === 'boolean') {
+            return value;
+
+        } else if (typeof value === 'number') {
+            return !!value;
+
+        } else if (typeof value === 'string') {
+            try {
+                // 'true' and '1' => true... 'false' and '0' => false
+                return !!JSON.parse(value);
+            } catch (err) {}    // eslint-disable-line
+        }
+
+        if (typeof defaultValue === 'undefined') {
+            defaultValue = null;
+        }
+
+        return defaultValue;
+    },
+
     /**
      *
      * @param {*} value

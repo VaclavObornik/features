@@ -3,25 +3,29 @@
 const AppError = require('../appError');
 const requestValidator = require('../utils/requestValidator');
 
+/**
+ * Array of supported systems
+ */
+const SUPPORTED_SYSTEMS = ['pos', 'pay', 'is', 'www', 'pig'];
+
+/**
+ * Array of supported systems
+ */
+const SUPPORTED_ENVIRONMENTS = ['production', 'pre', 'test', 'testing'];
 
 class FeatureDefinitionRequest {
 
     constructor () {
 
         /**
-         * Array of supported systems
-         */
-        this.SUPPORTED_SYSTEMS = ['pos', 'pay', 'is', 'www', 'pig'];
-
-        /**
-         * Array of supported systems
-         */
-        this.SUPPORTED_ENVIRONMENTS = ['production', 'pre', 'test', 'testing'];
-
-        /**
          * @type {string}
          */
         this.merchantId = null;
+
+        /**
+         * @type {boolean}
+         */
+        this.byMerchant = null;
 
         /**
          * @type {{
@@ -37,12 +41,21 @@ class FeatureDefinitionRequest {
         this.environment = null;
     }
 
+    /**
+     * @param {FeatureDefinitionRequest} request
+     * @returns {FeatureDefinitionRequest}
+     */
+    static clone (request) {
+        return Object.assign(new FeatureDefinitionRequest(), request);
+    }
+
     validate () {
 
+        this.byMerchant = requestValidator.boolean(this.byMerchant, false);
         this.merchantId = requestValidator.objectId(this.merchantId, 'merchantId');
         this.system = requestValidator.object(this.system);
         this.environment = requestValidator.stringEnum(
-            this.environment, this.SUPPORTED_ENVIRONMENTS, false, 'environment', 'production'
+            this.environment, SUPPORTED_ENVIRONMENTS, false, 'environment', 'production'
         );
 
         if (this.system) {
@@ -59,7 +72,7 @@ class FeatureDefinitionRequest {
 
             requestValidator.propFilled(this.system, 'system');
 
-            if (this.SUPPORTED_SYSTEMS.indexOf(this.system.system) === -1) {
+            if (SUPPORTED_SYSTEMS.indexOf(this.system.system) === -1) {
                 throw new AppError.badRequest('Unsupported system'); // eslint-disable-line
             }
         }

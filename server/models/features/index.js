@@ -86,7 +86,7 @@ const features = {
 
         const definitions = await featureStorage.getFeatureDefinitions();
 
-        if (request.byMerchant) {
+        if (request.byMerchant && !request.allEnabled) {
             return this._getFeatureDefinitionsByMerchants(definitions, request);
         }
 
@@ -101,7 +101,7 @@ const features = {
     _getFeatureDefinitionsForRequest (request, definitions) {
 
         const translatedDefinitions = {};
-        const reducingFunction = this._factoryReducingFunction(request);
+        const someFunction = this._factorySomeFunction(request);
 
         for (const prop in definitions) {
 
@@ -112,7 +112,7 @@ const features = {
                 continue;
             }
 
-            translatedDefinitions[prop] = definitions[prop].reduce(reducingFunction, false);
+            translatedDefinitions[prop] = definitions[prop].some(someFunction);
         }
 
         return translatedDefinitions;
@@ -123,7 +123,7 @@ const features = {
      * @returns {function}
      * @private
      */
-    _factoryReducingFunction (request) {
+    _factorySomeFunction (request) {
 
         /**
          * Test system version comparing function
@@ -136,21 +136,25 @@ const features = {
         /**
          * Reducing function itself
          */
-        return function (_value, _element) {
+        return function (value) {
 
-            if (testSystemVersion) {
-                _value = _value || testSystemVersion(_element);
+            if (request.allEnabled) {
+                return true;
             }
 
-            if (request.merchantId) {
-                _value = _value || _element === request.merchantId;
+            if (testSystemVersion && testSystemVersion(value)) {
+                return true;
             }
 
-            if (request.environment) {
-                _value = _value || _element === request.environment;
+            if (request.merchantId && value === request.merchantId) {
+                return true;
             }
 
-            return _value;
+            if (request.environment && value === request.environment) {
+                return true;
+            }
+
+            return false;
         };
     },
 

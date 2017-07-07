@@ -28,6 +28,11 @@ class FeatureDefinitionRequest {
         this.byMerchant = null;
 
         /**
+         * @type {boolean}
+         */
+        this.allEnabled = null;
+
+        /**
          * @type {{
          *      system: string,
          *      version: string
@@ -52,6 +57,7 @@ class FeatureDefinitionRequest {
     validate () {
 
         this.byMerchant = requestValidator.boolean(this.byMerchant, false);
+        this.allEnabled = requestValidator.boolean(this.allEnabled, false);
         this.merchantId = requestValidator.objectId(this.merchantId, 'merchantId');
         this.system = requestValidator.object(this.system);
         this.environment = requestValidator.stringEnum(

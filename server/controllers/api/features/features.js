@@ -31,6 +31,8 @@ router.get('*', async (ctx) => {
 
     request.byMerchant = ctx.query.byMerchant;
 
+    request.allEnabled = ctx.query.allEnabled;
+
     request.validate();
 
     ctx.body = await features.getFeatureDefinitionsForRequest(request);

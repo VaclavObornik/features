@@ -8,11 +8,6 @@ const requestValidator = require('../utils/requestValidator');
  */
 const SUPPORTED_SYSTEMS = ['pos', 'pay', 'is', 'www', 'pig'];
 
-/**
- * Array of supported systems
- */
-const SUPPORTED_ENVIRONMENTS = ['production', 'pre', 'test'];
-
 class FeatureDefinitionRequest {
 
     constructor () {
@@ -60,9 +55,7 @@ class FeatureDefinitionRequest {
         this.allEnabled = requestValidator.boolean(this.allEnabled, false);
         this.merchantId = requestValidator.objectId(this.merchantId, 'merchantId');
         this.system = requestValidator.object(this.system);
-        this.environment = requestValidator.stringEnum(
-            this.environment, SUPPORTED_ENVIRONMENTS, false, 'environment', 'production'
-        );
+        this.environment = requestValidator.string(this.environment, 'production', 'environment');
 
         if (this.system) {
 

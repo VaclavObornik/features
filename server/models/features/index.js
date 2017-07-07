@@ -86,7 +86,7 @@ const features = {
 
         const definitions = await featureStorage.getFeatureDefinitions();
 
-        if (request.byMerchant && !request.allEnabled) {
+        if (request.byMerchant) {
             return this._getFeatureDefinitionsByMerchants(definitions, request);
         }
 

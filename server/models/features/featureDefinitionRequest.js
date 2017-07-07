@@ -11,7 +11,7 @@ const SUPPORTED_SYSTEMS = ['pos', 'pay', 'is', 'www', 'pig'];
 /**
  * Array of supported systems
  */
-const SUPPORTED_ENVIRONMENTS = ['production', 'pre', 'test', 'testing'];
+const SUPPORTED_ENVIRONMENTS = ['production', 'pre', 'test'];
 
 class FeatureDefinitionRequest {
 

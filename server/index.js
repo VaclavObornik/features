@@ -2,6 +2,7 @@
 
 const Koa = require('koa2');
 const koaBody = require('koa-body');
+const koaCors = require('koa2-cors');
 const compress = require('koa-compress');
 const logger = require('koa-logger');
 
@@ -22,6 +23,7 @@ if (config.env === config.DEVELOPMENT) {
 }
 
 /** basic middlewares **/
+app.use(koaCors());
 app.use(compress());
 app.use(koaBody());
 

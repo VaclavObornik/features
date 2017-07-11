@@ -117,13 +117,6 @@ describe('Features API', () => {
                 .expect(400);
         });
 
-        it('should return 400 when non-existing environment is passed into request', () => {
-            return api.request()
-                .get('/')
-                .query({ environment: 'aaa' })
-                .expect(400);
-        });
-
         it('should return 400 when `version` property is specified, but not `system` name', () => {
             return api.request()
                 .get('/')

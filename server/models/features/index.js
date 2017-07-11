@@ -164,7 +164,7 @@ const features = {
      */
     _factoryTestSystemVersionFunction (system) {
 
-        const systemMatcher = new RegExp(`^${system.system}`, 'gm');
+        const systemMatcher = new RegExp(`^${system.system}`, 'i');
 
         return function (_element) {
 

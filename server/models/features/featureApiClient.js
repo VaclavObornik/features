@@ -5,16 +5,16 @@ const nodeFetch = require('node-fetch');
 
 class FeatureApiClient {
 
-    constructor (options = {}) {
-        this._options = options;
+    constructor (url) {
+        this._url = url;
         this._fetchedVersion = 0;
     }
 
     /**
      * @returns {Promise}
      */
-    fetchFeatureDefinitions () {
-        return nodeFetch(`${this._options.url}?a=${this._fetchedVersion++}`)
+    fetchDefinitions () {
+        return nodeFetch(`${this._url}?a=${this._fetchedVersion++}`)
             .then(res => res.json());
     }
 }

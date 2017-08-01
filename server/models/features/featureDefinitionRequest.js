@@ -18,6 +18,11 @@ class FeatureDefinitionRequest {
         this.merchantId = null;
 
         /**
+         * @type {string}
+         */
+        this.tariffId = null;
+
+        /**
          * @type {boolean}
          */
         this.byMerchant = null;
@@ -54,6 +59,7 @@ class FeatureDefinitionRequest {
         this.byMerchant = requestValidator.boolean(this.byMerchant, false);
         this.allEnabled = requestValidator.boolean(this.allEnabled, false);
         this.merchantId = requestValidator.objectId(this.merchantId, 'merchantId');
+        this.tariffId = requestValidator.objectId(this.tariffId, 'tariffId');
         this.system = requestValidator.object(this.system);
         this.environment = requestValidator.string(this.environment, 'production', 'environment');
 

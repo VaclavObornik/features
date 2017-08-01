@@ -9,10 +9,16 @@ const featureStorage = require('../../../server/models/features/featureStorage')
 
 const merchantId1 = '60dab243332f920e00b6cd16';
 const merchantId2 = '58dab243332f920e00b6cd17';
-const customDocument = {
-    feature1: ['test', 'pre'],
+
+const customTariffsDocument = {
+    start: ['553a61b39bfb20160000000b', '56cec1a5df25010e00b0a6cf']
+};
+
+const customFeaturesDocument = {
+    feature1: ['test', 'env:pre'],
     feature2: ['pos>=4.122', merchantId1],
-    merchantSpecificBugFix: [merchantId2]
+    merchantSpecificBugFix: [`merchantId:${merchantId2}`],
+    tariffFeature: ['tariff:start,profi']
 };
 
 
@@ -21,8 +27,10 @@ describe('Features API', () => {
     api.before(mocha);
 
     before(function (done) {
-        featureStorage.updateFeatureDefinitions(customDocument)
-            .then(() => done());
+        Promise.all([
+            featureStorage.updateFeatureDefinitions(customFeaturesDocument),
+            featureStorage.updateTariffsDefinitions(customTariffsDocument)
+        ]).then(() => done(), done);
     });
 
     describe('GET method', function () {
@@ -33,50 +41,27 @@ describe('Features API', () => {
                 .query({ system: 'POS', version: '5.901', environment: 'production' })
                 .expect(200)
                 .then((res) => {
-                    assert(!res.body.error, 'Response should have not contain any error');
-                    assert(res.body.feature1 === false, 'Feature should be false');
-                    assert(res.body.feature2 === true, 'Feature should be true');
-                    assert(res.body.merchantSpecificBugFix === false, 'Feature should be false');
-                });
-        });
-
-        it('should return definitions when requested for `merchant`', () => {
-            return api.request()
-                .get('/')
-                .query({ merchantId: '58dab243332f920e00b6cd17' })
-                .expect(200)
-                .then((res) => {
-                    assert(!res.body.error, 'Response should have not contain any error');
-                    assert(res.body.feature1 === false, 'Feature should be false');
-                    assert(res.body.feature2 === false, 'Feature should be false');
-                    assert(res.body.merchantSpecificBugFix === true, 'Feature should be true');
-                });
-        });
-
-        it('should return definitions by merchant with `byMerchant` flag', () => {
-            return api.request()
-                .get('/')
-                .query({ byMerchant: true, environment: 'pre' })
-                .expect(200)
-                .then((res) => {
-                    assert(!res.body.error, 'Response should have not contain any error');
                     assert.deepEqual(res.body, {
-                        null: {
-                            feature1: true,
-                            feature2: false,
-                            merchantSpecificBugFix: false
-                        },
-                        [merchantId1]: {
-                            feature1: true,
-                            feature2: true,
-                            merchantSpecificBugFix: false
-                        },
-                        [merchantId2]: {
-                            feature1: true,
-                            feature2: false,
-                            merchantSpecificBugFix: true
-                        }
-                    }, 'The definitions does not match.');
+                        feature1: false,
+                        feature2: true,
+                        merchantSpecificBugFix: false,
+                        tariffFeature: false
+                    });
+                });
+        });
+
+        it('should return definitions when requested for `merchant` and `tariff`', () => {
+            return api.request()
+                .get('/')
+                .query({ merchantId: '58dab243332f920e00b6cd17', tariffId: '553a61b39bfb20160000000b' })
+                .expect(200)
+                .then((res) => {
+                    assert.deepEqual(res.body, {
+                        feature1: false,
+                        feature2: false,
+                        merchantSpecificBugFix: true,
+                        tariffFeature: true
+                    });
                 });
         });
 
@@ -84,29 +69,26 @@ describe('Features API', () => {
             return api.request()
                 .get('/')
                 .query({ system: 'POS' })
-                .then(function (res) {
-
-                    assert(!res.body.error, 'Response should have not contain any error');
-
-                    for (const prop in res.body) {
-                        if (!Object.prototype.hasOwnProperty.call(res.body, prop)) { continue; }
-                        assert(typeof res.body[prop] === 'boolean', 'All definition properties should be just booleans');
-                    }
+                .then((res) => {
+                    assert.deepEqual(res.body, {
+                        feature1: false,
+                        feature2: false,
+                        merchantSpecificBugFix: false,
+                        tariffFeature: false
+                    });
                 });
         });
 
         it('should return all definitions as false when no query specified', () => {
             return api.request()
                 .get('/')
-                .then(function (res) {
-
-                    assert(!res.body.error, 'Response should have not contain any error');
-
-                    for (const prop in res.body) {
-                        if (!Object.prototype.hasOwnProperty.call(res.body, prop)) { continue; }
-                        assert(typeof res.body[prop] === 'boolean', 'All definition properties should be just booleans');
-                        assert(res.body[prop] === false, 'Every feature should be false');
-                    }
+                .then((res) => {
+                    assert.deepEqual(res.body, {
+                        feature1: false,
+                        feature2: false,
+                        merchantSpecificBugFix: false,
+                        tariffFeature: false
+                    });
                 });
         });
 

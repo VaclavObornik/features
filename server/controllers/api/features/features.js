@@ -27,9 +27,9 @@ router.get('*', async (ctx) => {
 
     request.merchantId = ctx.query.merchantId;
 
-    request.environment = ctx.query.environment;
+    request.tariffId = ctx.query.tariffId;
 
-    request.byMerchant = ctx.query.byMerchant;
+    request.environment = ctx.query.environment;
 
     request.allEnabled = ctx.query.allEnabled;
 

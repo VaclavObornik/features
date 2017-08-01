@@ -14,7 +14,8 @@ class FeatureFetchTask extends cronious.Task {
         super('FeatureFetchTask');
 
         this._timeout = timeout;
-        this._client = new FeatureApiClient(config.featureApi);
+        this._featuresClinet = new FeatureApiClient(config.featureApi.featuresUrl);
+        this._tariffsClinet = new FeatureApiClient(config.featureApi.tariffsUrl);
     }
 
     getNextTime () {
@@ -27,9 +28,11 @@ class FeatureFetchTask extends cronious.Task {
 
         try {
 
-            const definitions = await this._client.fetchFeatureDefinitions();
+            const features = await this._featuresClinet.fetchDefinitions();
+            await featureStorage.updateFeatureDefinitions(features);
 
-            await featureStorage.updateFeatureDefinitions(definitions);
+            const tariffs = await this._tariffsClinet.fetchDefinitions();
+            await featureStorage.updateTariffsDefinitions(tariffs);
 
         } catch (error) {
             log.e(error.err, error);

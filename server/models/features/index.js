@@ -6,11 +6,9 @@ const log = require('../log').module('features');
 const FeatureFetchTask = require('./featureFetchTask');
 const featureStorage = require('./featureStorage');
 const config = require('../../config');
-const mongodb = require('mongodb');
-const FeatureDefinitionRequest = require('./featureDefinitionRequest');
 
 
-const features = {
+const featuresService = {
 
     _taskRunner: null,
 
@@ -50,69 +48,69 @@ const features = {
         await this._taskRunner.registerTask(task, 1);
     },
 
-    _getFeatureDefinitionsByMerchants (definitions, request) {
-
-        const merchantIds = Object.keys(definitions).reduce((_merchantIds, definiton) => {
-            _merchantIds.push(...definitions[definiton].filter((value) =>
-                mongodb.ObjectId.isValid(value) && !_merchantIds.includes(value)
-            ));
-            return _merchantIds;
-        }, []);
-
-        const merchantRequests = [
-
-            Object.assign(FeatureDefinitionRequest.clone(request), { byMerchant: false, merchantId: null }),
-
-            ...merchantIds.map(merchantId => Object.assign(
-                FeatureDefinitionRequest.clone(request),
-                { byMerchant: false, merchantId }
-            ))
-        ];
-
-        return merchantRequests.reduce((result, merchantRequest) => {
-            result[merchantRequest.merchantId] = this._getFeatureDefinitionsForRequest(
-                merchantRequest,
-                definitions
-            );
-            return result;
-        }, {});
-    },
-
     /**
      * @param {FeatureDefinitionRequest} request
      * @returns {boolean}
      */
     async getFeatureDefinitionsForRequest (request) {
 
-        const definitions = await featureStorage.getFeatureDefinitions();
+        const features = await this._getFeatureDefinitions();
 
-        if (request.byMerchant) {
-            return this._getFeatureDefinitionsByMerchants(definitions, request);
+        return this._getFeatureDefinitionsForRequest(request, features);
+    },
+
+    async _getFeatureDefinitions () {
+        const { features, tariffs } = await featureStorage.getFeatureDefinitions();
+
+        for (const prop in features) {
+            if (!Object.prototype.hasOwnProperty.call(features, prop)) {
+                continue;
+            }
+
+            features[prop] = features[prop].map((def) => {
+
+                const tariffTags = def.match(/^tariff(:|=)(.+)/);
+
+                if (tariffTags) {
+                    const tariffIds = tariffTags[2].split(',')
+                        .map(tariff => tariffs[tariff] || [])
+                        .reduce((prev, array) => {
+                            prev.push(...array);
+                            return prev;
+                        }, []);
+
+                    return `tariffId:${tariffIds.join(',')}`;
+                }
+
+                return def;
+            });
         }
 
-        return this._getFeatureDefinitionsForRequest(request, definitions);
+        return features;
     },
 
     /**
      * @param {FeatureDefinitionRequest} request
-     * @param {Object} definitions
+     * @param {Object} features
      * @returns {boolean}
      */
-    _getFeatureDefinitionsForRequest (request, definitions) {
+    _getFeatureDefinitionsForRequest (request, features) {
 
         const translatedDefinitions = {};
         const someFunction = this._factorySomeFunction(request);
 
-        for (const prop in definitions) {
+        for (const prop in features) {
 
-            if (!Object.prototype.hasOwnProperty.call(definitions, prop)) { continue; }
+            if (!Object.prototype.hasOwnProperty.call(features, prop)) {
+                continue;
+            }
 
-            if (!Array.isArray(definitions[prop])) {
+            if (!Array.isArray(features[prop])) {
                 translatedDefinitions[prop] = false;
                 continue;
             }
 
-            translatedDefinitions[prop] = definitions[prop].some(someFunction);
+            translatedDefinitions[prop] = features[prop].some(someFunction);
         }
 
         return translatedDefinitions;
@@ -133,6 +131,18 @@ const features = {
             ? this._factoryTestSystemVersionFunction(request.system)
             : null;
 
+        const testTariffId = request.tariffId
+            ? this._factoryTestTariffIdFunction(request.tariffId)
+            : null;
+
+        const testMerchantId = request.merchantId
+            ? this._factoryTestMerchantIdFunction(request.merchantId)
+            : null;
+
+        const testEnvironment = request.environment
+            ? this._factoryTestEnvironmentFunction(request.environment)
+            : null;
+
         /**
          * Reducing function itself
          */
@@ -146,11 +156,15 @@ const features = {
                 return true;
             }
 
-            if (request.merchantId && value === request.merchantId) {
+            if (testMerchantId && testMerchantId(value)) {
                 return true;
             }
 
-            if (request.environment && value === request.environment) {
+            if (testTariffId && testTariffId(value)) {
+                return true;
+            }
+
+            if (testEnvironment && testEnvironment(value)) {
                 return true;
             }
 
@@ -159,8 +173,35 @@ const features = {
     },
 
     /**
+     * @param {string} tariffId
      * @returns {function}
-     * @private
+     */
+    _factoryTestTariffIdFunction (tariffId) {
+        const tariffMatcher = new RegExp(`^tariffId(:|=).*(${tariffId})`, 'i');
+        return _element => tariffMatcher.test(_element);
+    },
+
+    /**
+     * @param {string} merchantId
+     * @returns {function}
+     */
+    _factoryTestMerchantIdFunction (merchantId) {
+        const merchantMatcher = new RegExp(`^(merchantId|merchant)(:|=).*(${merchantId})`, 'i');
+        return _element => _element === merchantId || merchantMatcher.test(_element);
+    },
+
+    /**
+     * @param {string} environment
+     * @returns {function}
+     */
+    _factoryTestEnvironmentFunction (environment) {
+        const environmentMatcher = new RegExp(`^(environment|env)(:|=).*(${environment})`, 'i');
+        return _element => _element === environment || environmentMatcher.test(_element);
+    },
+
+    /**
+     * @param {string} system
+     * @returns {function}
      */
     _factoryTestSystemVersionFunction (system) {
 
@@ -179,7 +220,7 @@ const features = {
                 return true;
             }
 
-            const indexOfVersion = stringToParse.search(new RegExp('[0-9]', 'gm'));
+            const indexOfVersion = stringToParse.search(/[0-9]/g);
 
             if (indexOfVersion === -1) {
                 return false;
@@ -210,4 +251,4 @@ const features = {
     }
 };
 
-module.exports = features;
+module.exports = featuresService;
